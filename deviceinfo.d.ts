@@ -35,6 +35,7 @@ declare const _default: {
   getSerialNumber: () => string;
   getIPAddress: () => Promise<string>;
   getMACAddress: () => Promise<string>;
+  androidGetLocatingMethod: () => Promise<string>;
   getPhoneNumber: () => string;
   getAPILevel: () => number;
   getCarrier: () => string;

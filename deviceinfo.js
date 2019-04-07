@@ -230,6 +230,13 @@ export default {
   getIPAddress: function() {
     return RNDeviceInfo.getIpAddress();
   },
+  androidGetLocatingMethod: function() {
+    if (Platform.OS === 'android') {
+      return RNDeviceInfo.getLocatingMethod();
+    } else {
+      return null;
+    }
+  },
   getMACAddress: function() {
     return RNDeviceInfo.getMacAddress();
   },
