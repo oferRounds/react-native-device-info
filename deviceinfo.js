@@ -8,7 +8,7 @@ var RNDeviceInfo = NativeModules.RNDeviceInfo;
 if (Platform.OS === 'web' || Platform.OS === 'dom') {
   RNDeviceInfo = require('./web');
 }
-if (!RNDeviceInfo) {
+if (!RNDeviceInfo && process.env.JEST_WORKER_ID === undefined) {
   // Produce an error if we don't have the native module
   if (
     Platform.OS === 'android' ||
