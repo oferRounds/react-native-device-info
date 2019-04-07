@@ -30,6 +30,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
+import android.location.LocationManager;
+
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,6 +64,68 @@ public class RNDeviceModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return "RNDeviceInfo";
+  }
+
+  enum LocatingMethod
+  {
+    Off("OFF"),
+    SensorsOnly("SENSORS_ONLY"),
+    BatterySaving("LOCATION_MODE_BATTERY_SAVING"),
+    HighAccuracy("HIGH_ACCURACY");
+
+    private String locatingMethod;
+
+    LocatingMethod(String locatingMethod) {
+      this.locatingMethod = locatingMethod;
+    }
+
+    public String toString() {
+      return this.locatingMethod;
+    }
+  }
+
+  @ReactMethod
+  public void getLocatingMethod(Promise promise) {
+
+    LocatingMethod retVal = LocatingMethod.Off;
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+      LocationManager manager = (LocationManager)getReactApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+      boolean isGpsEnabled = manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+      boolean isNetworkEnabled = manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+      if (isGpsEnabled) {
+        retVal = isNetworkEnabled ? LocatingMethod.HighAccuracy : LocatingMethod.SensorsOnly;
+      } else if (isNetworkEnabled) {
+        retVal = LocatingMethod.BatterySaving;
+      } else {
+        retVal = LocatingMethod.Off;
+      }
+    } else {
+      try {
+        int _locatingMethod  = Settings.Secure.getInt(getCurrentActivity().getContentResolver(), Settings.Secure.LOCATION_MODE);
+        switch(_locatingMethod) {
+          case 3:
+            retVal = LocatingMethod.HighAccuracy;
+            break;
+          case 2:
+            retVal = LocatingMethod.BatterySaving;
+            break;
+          case 1:
+            retVal = LocatingMethod.SensorsOnly;
+            break;
+          default:
+            retVal = LocatingMethod.Off;
+        }
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        promise.reject("Could not get current activity in 'getLocatingMethod'", ex);
+      }
+    }
+
+    String rawValue = retVal.toString();
+
+    promise.resolve(rawValue);
   }
 
   private WifiInfo getWifiInfo() {
